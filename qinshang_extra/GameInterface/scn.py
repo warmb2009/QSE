@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import struct
-# import os
-# import sys
-# from io import BytesIO
 from mdl import MdlBase
 from ini import ResMng
 
@@ -113,8 +110,9 @@ class BntBase():
         f = open(_filename, 'rb')
         return f
 
-
+'''
 if __name__ == '__main__':
     file_name = '/home/jeroen/work/qinshang/game/SCENE/Int/zhc_house1.BNT'
     # file_name = '/home/jeroen/work/qinshang/game/SCENE/Int/zhaocun1.BNT'
     bnt = BntBase(file_name)
+'''

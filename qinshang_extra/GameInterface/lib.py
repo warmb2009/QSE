@@ -1,5 +1,17 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8 -*-
+'''
+@文件    :lib.py
+@说明    :
+@时间    :2020/10/11 16:39:21
+@作者    :jeroen
+@版本    :1.0
+'''
+
+import struct
+from io import BytesIO
+import numpy as np
+from PIL import Image
 
 '''
 读取秦殇目录的资源文件lib
@@ -24,15 +36,65 @@
 那么表示接下来的一个(short)短整形数 就是 ,是 连续的不透明色的个数.
 反之,就是透明色的个数. 注意一点: 他们都是短整形数,因为,哎,因为图象的点就是16位的.
 '''
-import struct
-from io import BytesIO
-import numpy as np
-from PIL import Image
+
+
+class QinXbmDev():
+    def __init__(self, _buf):
+        self.type = 0
+        self.buf = _buf
+        self.data = None
+
+        self.initdata()
+
+    def initdata(self):
+        b = BytesIO(self.buf)
+        h_str = struct.unpack('8s', b.read(8))[0]
+        if h_str == b'xbmgroup':
+            self.type = 0
+            self.data = QinXBMGroup(self.buf)
+        else:
+            self.type = 1
+            self.data = QinXBM(self.buf)
+
+
+class QinXBMGroup():
+    def __init__(self, _buf):
+        self.buf = BytesIO(_buf)
+        self.szName = ''
+        self.iNum = 0
+        self.size = 0
+        self.qx_list = []
+
+        self.initdata()
+
+    def initdata(self):
+        # 标识
+        self.szName = struct.unpack('16s', self.buf.read(16))[0]
+        # 子图片数量
+        self.iNum = struct.unpack('i', self.buf.read(4))[0]
+        self.size = struct.unpack('i', self.buf.read(4))[0]
+
+        pos_list = []
+        # 读取偏移地址（相对于文件头）
+        num = self.iNum
+        while num:
+            pos = struct.unpack('i', self.buf.read(4))[0]
+            pos_list.append(pos)
+            num -= 1
+
+        # 读取xbm 加入列表
+        for pos in pos_list:
+            self.buf.seek(pos)
+            data = self.buf.read(self.size)
+            qx = QinXBM(data)
+            self.qx_list.append(qx)
 
 
 class QinXBM():
     def __init__(self, _buf):
         self.buf = BytesIO(_buf)
+        self.szName = ''
+        self.iVer = 0
         self.width = 0
         self.height = 0
         self.position_list = []
@@ -46,7 +108,8 @@ class QinXBM():
 
     # xbm 类型图片初始化
     def initdata(self):
-        # xbmtype = struct.unpack('4s', self.buf.read(4))
+        self.szName = struct.unpack('16s', self.buf.read(16))
+        self.iVer = struct.unpack('4s', self.buf.read(4))
         self.buf.seek(20)
 
         # 读取图片宽度 高度
@@ -90,12 +153,12 @@ class QinXBM():
 
             for i in range(no_zero_count):
                 res = self.buf.read(2)
-                print(''.join([r'\x{:x}'.format(c) for c in res]))
+                # print(''.join([r'\x{:x}'.format(c) for c in res]))
                 data = struct.unpack('h', res)[0]
                 color = self.rgb565torgb888(data)
-                print(self.index)
-                print(current_count)
-                print(self.image_array.shape)
+                # print(self.index)
+                # print(current_count)
+                # print(self.image_array.shape)
                 self.image_array[self.index, current_count] = color
 
                 current_count += 1
@@ -107,17 +170,13 @@ class QinXBM():
 
     # 读取图片某行的数据 index行
     def read_line_data(self, _index):
-        print(_index)
+        # print(_index)
         self.index = _index
         pos = self.position_list[self.index]
         self.buf.seek(pos)
 
-        # length = self.width
-        # rest = self.buf.read(4)
-        # print(''.join([r'\x{:x}'.format(c) for c in rest]))
-
         self.read_image_line_data(0, True)
-        print(self.image_array[self.index])
+        # print(self.image_array[self.index])
 
     def read_data(self):
         for i in range(self.height):
@@ -146,20 +205,23 @@ class QinLib():
     def initdata(self, _filename=''):
         f = self.read(_filename)
         # libtype = struct.unpack('8s', f.read(8))
-        f.seek(16)
-        libcount = struct.unpack('i', f.read(4))[0]
+        f.seek(16)  # 读取头
+        libcount = struct.unpack('i', f.read(4))[0]  # 读取数量
         self.filecount = libcount
+        print('count:%d' % libcount)
         f.seek(256)
 
         for i in range(libcount):
             seek_pos = i * 8 + 256
             f.seek(seek_pos)
-            sig_pos = struct.unpack('i', f.read(4))
-            sig_length = struct.unpack('i', f.read(4))
+            sig_pos = struct.unpack('i', f.read(4))[0]
+            sig_length = struct.unpack('i', f.read(4))[0]
 
+            if sig_length == 0:  # 去掉空数据
+                continue
             fileinfo = {}
-            fileinfo['pos'] = sig_pos[0]
-            fileinfo['length'] = sig_length[0]
+            fileinfo['pos'] = sig_pos
+            fileinfo['length'] = sig_length
 
             self.filelist.append(fileinfo)
         f.close()
@@ -171,10 +233,11 @@ class QinLib():
         data = f.read(xbminfo['length'])
         return data
 
-
+'''
 if __name__ == '__main__':
     test = QinLib('../Res/snow.lib')
 
     data = test.get_xbm_buf(0)
     xbm = QinXBM(data)
     xbm.save_file('test.bmp')
+'''

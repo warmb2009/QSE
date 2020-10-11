@@ -52,10 +52,11 @@ class ResMng(BaseClass):
         print('fact lib id: %d' % fact_libid)
         print('fact lib name: %s' % self.ini_list[fact_libid].szTemp)
 
-        
+'''  
 if __name__ == '__main__':
     resMng = ResMng('a.csv')
     resMng.printc()
 
     resMng.get(2111334)
     resMng.get(2099548)
+'''
