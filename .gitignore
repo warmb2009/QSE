@@ -3,3 +3,5 @@ datas/Res/
 datas/SCENE/
 qinshang_extra/GameInterface/__pycache__/
 qinshang_extra/tests/__pycache__/
+qinshang_extra/__pycache__
+qinshang_extra/GameController/__pycache__
