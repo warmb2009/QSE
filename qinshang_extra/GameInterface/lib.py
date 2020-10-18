@@ -11,7 +11,7 @@
 import struct
 from io import BytesIO
 import numpy as np
-from PIL import Image
+#from PIL import Image
 
 '''
 读取秦殇目录的资源文件lib
@@ -38,7 +38,7 @@ from PIL import Image
 '''
 
 
-class QinXbmDev():
+class LibResClass():
     def __init__(self, _buf):
         self.type = 0
         self.buf = _buf
@@ -51,13 +51,13 @@ class QinXbmDev():
         h_str = struct.unpack('8s', b.read(8))[0]
         if h_str == b'xbmgroup':
             self.type = 0
-            self.data = QinXBMGroup(self.buf)
+            self.data = XBMGroupObject(self.buf)
         else:
             self.type = 1
-            self.data = QinXBM(self.buf)
+            self.data = XBMObject(self.buf)
 
 
-class QinXBMGroup():
+class XBMGroupObject():
     def __init__(self, _buf):
         self.buf = BytesIO(_buf)
         self.szName = ''
@@ -65,9 +65,9 @@ class QinXBMGroup():
         self.size = 0
         self.qx_list = []
 
-        self.initdata()
+        self.InitData()
 
-    def initdata(self):
+    def InitData(self):
         # 标识
         self.szName = struct.unpack('16s', self.buf.read(16))[0]
         # 子图片数量
@@ -86,11 +86,11 @@ class QinXBMGroup():
         for pos in pos_list:
             self.buf.seek(pos)
             data = self.buf.read(self.size)
-            qx = QinXBM(data)
+            qx = XBMObject(data)
             self.qx_list.append(qx)
 
 
-class QinXBM():
+class XBMObject():
     def __init__(self, _buf):
         self.buf = BytesIO(_buf)
         self.szName = ''
@@ -101,13 +101,13 @@ class QinXBM():
         self.index = 0
 
         self.image_array = None
-        self.initdata()
+        self.InitData()
         self.read_data()
 
         return
 
     # xbm 类型图片初始化
-    def initdata(self):
+    def InitData(self):
         self.szName = struct.unpack('16s', self.buf.read(16))
         self.iVer = struct.unpack('4s', self.buf.read(4))
         self.buf.seek(20)
@@ -184,10 +184,11 @@ class QinXBM():
 
         return self.image_array
 
+    '''
     def save_file(self, filename='out.jpeg'):
         img = Image.fromarray(self.image_array.astype('uint8')).convert('RGBA')
         img.save(filename)
-
+    '''
 
 # 处理lib资源文件
 class QinLib():

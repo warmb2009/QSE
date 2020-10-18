@@ -18,7 +18,7 @@ class BaseClass():
             print('<--- ' + i + ' : ' + str(j) + ' --->')
 
 
-class MapBase(BaseClass):
+class MapResClass(BaseClass):
     '''
     map文件的头文件格式
     '''
@@ -43,7 +43,7 @@ class MapBase(BaseClass):
     '''
     地图块数据结构（菱形地图块）
     '''
-    class MU(BaseClass):
+    class MUObject(BaseClass):
         def __init__(self):
             self.id_1 = 0
             self.id_2 = 0
@@ -52,13 +52,15 @@ class MapBase(BaseClass):
             self.height = 0
             self.terrain = 0
             self.scneffid = 0
+            self.buffer_1 = None
+            self.buffer_2 = None
 
         def printb(self, ex=''):
             print('%s\t:%.4X(%d)\t%.4X(%d)\t' % (ex, self.id_1, self.id_1,
                                                  self.id_2, self.id_2))
 
-    def __init__(self, _filename):
-        self.file_name = _filename
+    def __init__(self, _file_path):
+        self.file_path = _file_path
 
         self.file_header = None
         self.lib_header = None
@@ -67,10 +69,11 @@ class MapBase(BaseClass):
         self.mu_list = []  # 地图块数据列表
 
         # 地图数据初始化
-        self.init_data()
+        self.InitData()
 
-    def read(self, _filename):
-        f = open(_filename, 'rb')
+    def read(self, _file_path):
+        print(_file_path)
+        f = open(_file_path, 'rb')
         return f
 
     # 读取索引块
@@ -84,9 +87,9 @@ class MapBase(BaseClass):
     # 读取数据块
     def read_data(self, num, f):
         while num:
-            mu = self.MU()
-            mu.id_1 = struct.unpack('h', f.read(2))[0]
-            mu.id_2 = struct.unpack('h', f.read(2))[0]
+            mu = self.MUObject()
+            mu.id_1 = struct.unpack('h', f.read(2))[0]  # 第一层图块 下层
+            mu.id_2 = struct.unpack('h', f.read(2))[0]  # 第二层图块 上层
             mu.btype = struct.unpack('c', f.read(1))[0]
             mu.team_index = struct.unpack('c', f.read(1))[0]
             mu.height = struct.unpack('c', f.read(1))[0]
@@ -97,8 +100,8 @@ class MapBase(BaseClass):
 
         return self.mu_list
 
-    def init_data(self):
-        f = self.read(self.file_name)
+    def InitData(self):
+        f = self.read(self.file_path)
 
         # 读取地图文件头部
         self.file_header = self.FileHeader()
@@ -114,7 +117,8 @@ class MapBase(BaseClass):
         # 读取所需要的lib数据
         self.lib_header = self.LibHeader()
         self.lib_header.libversion = struct.unpack('16c', f.read(16))[0]
-        self.lib_header.libname = struct.unpack('256c', f.read(256))[0]
+        
+        self.lib_header.libname = struct.unpack('256s', f.read(256))[0].replace(b'\xcc', b'').replace(b'\x00', b'').decode()
         self.lib_header.libnum = int(struct.unpack('h', f.read(2))[0])
         self.lib_header.libsizenum = int(struct.unpack('i', f.read(4))[0])
 
@@ -164,13 +168,13 @@ class MapBase(BaseClass):
         self.write_str('num_list2', tt)
         '''
 
-    def write_str(self, file_name, num_str):
-        f = open(file_name, 'w')
+    def write_str(self, file_path, num_str):
+        f = open(file_path, 'w')
         f.write(num_str)
         f.close()
 
-    def write(self, file_name, data):
-        f = open(file_name, 'w')
+    def write(self, file_path, data):
+        f = open(file_path, 'w')
         f.writelines([line+'\n' for line in data])
         # f.writelines(data)
         f.close()

@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+@文件    :ResCombinationIni.py
+@说明    :
+@时间    :2020/10/18 11:20:15
+@作者    :jeroen
+@版本    :1.0
+'''
+
+
 import csv
 
 

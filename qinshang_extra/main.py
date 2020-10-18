@@ -8,8 +8,13 @@
 @版本    :1.0
 '''
 
-from tests import main
+from res import *
+import pygame
 
 
 if __name__ == '__main__':
-    main.test('../datas/Res/Res02.Lib')
+    lrs = LibResSingleton()
+    lrs.GetResBufferByID(3)
+    map_info = lrs.map_info
+    
+    

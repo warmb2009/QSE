@@ -18,7 +18,7 @@ class BaseClass():
             print('<--- ' + i + ' : ' + str(j) + ' --->')
 
 
-class MdlBase():
+class MdlResClass():
     class FileHeader(BaseClass):
         '''
         mdl文件的头文件格式
@@ -36,7 +36,7 @@ class MdlBase():
             self.reserved = ''
 
     # mdl内 各部件结构
-    class SModelBld():
+    class SModelObject():
         '''
         部件结构
         '''
@@ -65,7 +65,7 @@ class MdlBase():
             self.PartMng = []
 
     # 各部件内的小部件结构
-    class PartialModal():
+    class PartialModalObject():
         '''
         大部件由小部件组成
         如物品的灯光，火焰，或是大物品分割成小部件
@@ -90,10 +90,10 @@ class MdlBase():
         self.idTable = {}
 
         # 数据初始化
-        self.init_data()
+        self.InitData()
 
     # 详细的mdl文件数据的初始化过程
-    def init_data(self):
+    def InitData(self):
         f = self.read(self.file_name)
 
         # 读取mdl文件的头部
@@ -110,7 +110,7 @@ class MdlBase():
         num = self.file_header.inum
         while num:
             # 先读取大部件数据
-            bld = self.SModelBld()
+            bld = self.SModelObject()
 
             bld.itype = int(struct.unpack('h', f.read(2))[0])
             or_name = struct.unpack('32s', f.read(32))[0]  # 大部件名称
@@ -149,7 +149,7 @@ class MdlBase():
             # 读取部件下的小部件
             num = bld.PartNum
             while num:
-                a_bld = self.PartialModal()
+                a_bld = self.PartialModalObject()
 
                 or_m_name = struct.unpack('8s', f.read(8))[0]  # 小部件名称
                 a_bld.m_szName = or_m_name.replace(b'\xcd', b'')
