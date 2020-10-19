@@ -9,6 +9,7 @@
 '''
 import threading
 from GameController.scene import *
+import os.path        
 
 
 class LibResSingleton(object):
@@ -26,8 +27,12 @@ class LibResSingleton(object):
 
         return LibResSingleton._instance
 
+
+    def LoadScn(self, scn_name):
+        scn_folder = '/home/jeroen/work/qinshang/QSE/datas/SCENE/Scn_new/'
+        scn_path = os.path.join(scn_folder, scn_name)
+        sc = SceneMng()
+        self.map_info = sc.LoadScene(scn_path)
+
     def GetResBufferByID(self, res_id):
         scn_filename = '/home/jeroen/work/qinshang/QSE/datas/SCENE/Scn_new/zhc_house1.Scn'
-        sc = SceneMng()
-        self.map_info = sc.LoadScene(scn_filename)
-        pass

@@ -61,7 +61,7 @@ class Scn2():
             content['raderid'] = lines[-1].split('=')[1].strip()
             
             item_line = []
-            for line_num in range(4,len(lines) - 1,4):
+            for line_num in range(4, len(lines) - 1, 4):
                 item = {}
                 item['scene_index'] = lines[line_num].split('=')[1].strip()
                 item['x'] = lines[line_num+1].split('=')[1].strip()

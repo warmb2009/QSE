@@ -116,7 +116,7 @@ class XBMObject():
         self.width = struct.unpack('i', self.buf.read(4))[0]
         self.height = struct.unpack('i', self.buf.read(4))[0]
 
-        self.image_array = np.empty(shape=[self.height, self.width, 4],
+        self.image_array = np.empty(shape=[self.width, self.height, 4],
                                     dtype=int)
         # 定位到数据段
         self.buf.seek(64)
@@ -135,17 +135,17 @@ class XBMObject():
         g_888 = (g_mask & color) >> 3  # 右移动5 左移动2
         b_888 = (b_mask & color) << 3  # 左移动3
 
-        return [r_888, g_888, b_888, 255]
+        return (r_888, g_888, b_888, 255)
 
     def read_image_line_data(self, current_count, zero=True):
         if(zero):
             zero_count = int(struct.unpack('h', self.buf.read(2))[0]/2)
 
             for i in range(zero_count):
-                self.image_array[self.index, current_count] = [255,
+                self.image_array[current_count, self.index] = (255,
                                                                255,
                                                                255,
-                                                               0]
+                                                               0)
                 current_count += 1
 
         if (current_count < self.width):
@@ -159,7 +159,7 @@ class XBMObject():
                 # print(self.index)
                 # print(current_count)
                 # print(self.image_array.shape)
-                self.image_array[self.index, current_count] = color
+                self.image_array[current_count, self.index] = color
 
                 current_count += 1
 
@@ -197,7 +197,6 @@ class QinLib():
         self.filecount = 0
         self.filelist = []
         self.initdata(self.filename)
-        return
 
     def read(self, _filename):
         f = open(_filename, 'rb')
@@ -233,6 +232,30 @@ class QinLib():
         f.seek(xbminfo['pos'])
         data = f.read(xbminfo['length'])
         return data
+
+    def get_xbm_image(self, index):
+        data = self.get_xbm_buf(index)
+        lrc = LibResClass(data)
+        return lrc.data.image_array
+
+    def combine(self, buf_1, buf_2):
+        width = buf_1.shape[0]
+        height = buf_1.shape[1]
+        ret_array = np.empty(shape=[width, height, 4], dtype=int)
+        for i in range(0, buf_1.shape[0]):
+            for j in range(0, buf_1.shape[1]):
+                item_1 = buf_1[i][j]
+                item_2 = buf_2[i][j]
+
+                ret = item_1#[:3]
+                if item_2[3] != 0:
+                    ret = item_2#[:3]
+                ret_array[i, j] = ret
+                # print(ret)
+        return ret_array
+
+    def combine_map(self, width, height):
+        pass
 
 '''
 if __name__ == '__main__':

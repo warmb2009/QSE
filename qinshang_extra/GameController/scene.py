@@ -35,8 +35,9 @@ class SceneMng():
         count = len(mu_list)
 
         content_list = []
+        line_list = []
+
         for i in range(count):
-            line_list = []
             if i > 0 and i % width_count == 0:
                 content_list.append(line_list)
                 line_list = []
@@ -45,8 +46,9 @@ class SceneMng():
 
             index_1 = mu_item.id_1
             index_2 = mu_item.id_2
-            mu_item.buffer_1 = ql.get_xbm_buf(index_1)
-            mu_item.buffer_2 = ql.get_xbm_buf(index_2)
+            mu_item.buffer_1 = ql.get_xbm_image(index_1)
+            mu_item.buffer_2 = ql.get_xbm_image(index_2)
+            mu_item.combine_buffer = ql.combine(mu_item.buffer_1, mu_item.buffer_2)
             line_list.append(mu_item)
 
         map_info = {}
@@ -58,7 +60,7 @@ class SceneMng():
     def LoadScene(self, file_path):
         SRC = ScnResClass(file_path)
         SrcInfo = SRC.data
-        print(SrcInfo)
+
         map_name = SrcInfo['map_name']
         bnt_name = SrcInfo['intbld']
         ont_name = SrcInfo['intobj']

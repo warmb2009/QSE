@@ -54,6 +54,7 @@ class MapResClass(BaseClass):
             self.scneffid = 0
             self.buffer_1 = None
             self.buffer_2 = None
+            self.combine_buffer = None
 
         def printb(self, ex=''):
             print('%s\t:%.4X(%d)\t%.4X(%d)\t' % (ex, self.id_1, self.id_1,
