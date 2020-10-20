@@ -126,6 +126,8 @@ class MapResClass(BaseClass):
         self.lib_index_list = self.read_index(self.lib_header.libnum, f)
 
         num = self.file_header.cx * self.file_header.cy
+
+        # 读取mu数据，放入列表
         self.mu_list = self.read_data(num, f)
 
         '''

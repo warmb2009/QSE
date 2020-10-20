@@ -12,33 +12,36 @@ from res import *
 import pygame
 from pygame.locals import *
 import sys
-
+from PIL import Image
 
 if __name__ == '__main__':
+    # 初始化资源数据工厂
     lrs = LibResSingleton()
     lrs.LoadScn('zhc_house1.Scn')
     map_info = lrs.map_info
+    # 获取 某场景的map数据
     cx = map_info['cx']
     cy = map_info['cy']
-    info = map_info['info']
+    buf = map_info['info']
 
+    # pygame初始化
     pygame.init()
-    window = pygame.display.set_mode((700, 600))
+    # 设置窗口大小
+    window = pygame.display.set_mode((cx*64, cy*32))
     window.convert_alpha()
     window.fill((0, 0, 0, 0))
-    mu_item = info[3][2]
+
+    surf = pygame.Surface([64*cx, 32*cy], pygame.SRCALPHA)
+    surf.set_colorkey((0, 0, 0))
+
+    # buf绘制到surf
+    pygame.surfarray.blit_array(surf, buf)
+    # surf 透明化
+    surf = surf.convert_alpha()
+    window.blit(surf, (0, 0))
 
     while True:
-        # surf = pygame.display.set_mode((64, 32))
-        surf = pygame.Surface([64, 32], pygame.SRCALPHA)
-        surf = surf.convert_alpha()
-        surf.fill((0, 0, 0, 0))
-        buf = mu_item.combine_buffer
-        # print(buf)
-        print(buf.shape[0])
-        print(buf.shape[1])
-        pygame.surfarray.blit_array(surf, buf)
-        window.blit(surf, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        # 绘制surf到Windows        
         pygame.display.flip()
 
         events = pygame.event.get()
@@ -46,4 +49,3 @@ if __name__ == '__main__':
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit(0)
-    
