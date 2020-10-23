@@ -18,20 +18,24 @@ if __name__ == '__main__':
     # 初始化资源数据工厂
     lrs = LibResSingleton()
     lrs.LoadScn('zhc_house1.Scn')
+    #lrs.LoadScn('zhaocun1.Scn')
     map_info = lrs.map_info
     # 获取 某场景的map数据
     cx = map_info['cx']
     cy = map_info['cy']
     buf = map_info['info']
-
+    print(buf.shape[0])
+    print(buf.shape[1])
     # pygame初始化
     pygame.init()
     # 设置窗口大小
-    window = pygame.display.set_mode((cx*64, cy*32))
+    width = cx * 64
+    height = cy * 32
+    window = pygame.display.set_mode((width, height))
     window.convert_alpha()
     window.fill((0, 0, 0, 0))
 
-    surf = pygame.Surface([64*cx, 32*cy], pygame.SRCALPHA)
+    surf = pygame.Surface([height, width], pygame.SRCALPHA)
     surf.set_colorkey((0, 0, 0))
 
     # buf绘制到surf

@@ -37,7 +37,7 @@ import numpy as np
 反之,就是透明色的个数. 注意一点: 他们都是短整形数,因为,哎,因为图象的点就是16位的.
 '''
 
-
+# 处理buffer 
 class LibResClass():
     def __init__(self, _buf):
         self.type = 0
@@ -49,6 +49,7 @@ class LibResClass():
     def initdata(self):
         b = BytesIO(self.buf)
         h_str = struct.unpack('8s', b.read(8))[0]
+        # 分辨是否是xbmgroup 序列帧
         if h_str == b'xbmgroup':
             self.type = 0
             self.data = XBMGroupObject(self.buf)
@@ -56,7 +57,7 @@ class LibResClass():
             self.type = 1
             self.data = XBMObject(self.buf)
 
-
+# 读取xbm序列帧
 class XBMGroupObject():
     def __init__(self, _buf):
         self.buf = BytesIO(_buf)
@@ -102,7 +103,7 @@ class XBMObject():
 
         self.image_array = None
         self.InitData()
-        self.read_data()
+        self.image_array = self.read_data()
 
         return
 
@@ -116,7 +117,8 @@ class XBMObject():
         self.width = struct.unpack('i', self.buf.read(4))[0]
         self.height = struct.unpack('i', self.buf.read(4))[0]
 
-        self.image_array = np.empty(shape=[self.width, self.height, 4],
+        # 初始化图片数据的矩阵
+        self.image_array = np.empty(shape=[self.width, self.height, 3],
                                     dtype=int)
         # 定位到数据段
         self.buf.seek(64)
@@ -124,8 +126,10 @@ class XBMObject():
         # 读取每行的偏移地址
         for i in range(self.height):
             pos = struct.unpack('i', self.buf.read(4))[0] + 64
+            # 处理单行数据
             self.position_list.append(pos)
 
+    # rgb565图像转为rgb888
     def rgb565torgb888(self, color):
         r_mask = 0b1111100000000000
         g_mask = 0b0000011111100000
@@ -135,54 +139,58 @@ class XBMObject():
         g_888 = (g_mask & color) >> 3  # 右移动5 左移动2
         b_888 = (b_mask & color) << 3  # 左移动3
 
-        return (r_888, g_888, b_888, 255)
+        return (r_888, g_888, b_888)
 
-    def read_image_line_data(self, current_count, zero=True):
-        if(zero):
-            zero_count = int(struct.unpack('h', self.buf.read(2))[0]/2)
+    def read_image_line_data(self, buf, current_count, width):
+        pixel_array = []
+        # buf: xbm图片缓存
+        # current_count 初始为0 记录所读取的游标，用于迭代
+        # width:图片宽度 用于限制迭代次数
+        # pixel_array 要存入数据的数组
 
-            for i in range(zero_count):
-                self.image_array[current_count, self.index] = (0,
-                                                               0,
-                                                               0,
-                                                               0)
-                current_count += 1
+        # 读取透明色的个数
+        zero_count = int(struct.unpack('h', buf.read(2))[0]/2)
 
-        if (current_count < self.width):
-            no_zero_count = int(struct.unpack('h', self.buf.read(2))[0]/2)
-
+        for i in range(zero_count):
+            pixel_array.append((0, 0, 0))
+            # 颜色计数器+1
+            current_count += 1
+        if (current_count < width):
+            # 继续读取非透明颜色
+            no_zero_count = int(struct.unpack('h', buf.read(2))[0]/2)
             for i in range(no_zero_count):
-                res = self.buf.read(2)
-                # print(''.join([r'\x{:x}'.format(c) for c in res]))
+                res = buf.read(2)
                 data = struct.unpack('h', res)[0]
+                # 565颜色转为888
                 color = self.rgb565torgb888(data)
-                # print(self.index)
-                # print(current_count)
-                # print(self.image_array.shape)
-                self.image_array[current_count, self.index] = color
-
+                # 将新颜色加入图片像素矩阵
+                pixel_array.append(color)
+                # 计数器+1
                 current_count += 1
 
-        if (current_count < self.width):
-            self.read_image_line_data(current_count, True)
+        if (current_count < width):
+            # 继续读取后面的颜色            
+            r_array = self.read_image_line_data(buf,
+                                                current_count,
+                                                width)
+            pixel_array.extend(r_array)  # 合并迭代数组
+            return pixel_array
         else:
-            return
-
-    # 读取图片某行的数据 index行
-    def read_line_data(self, _index):
-        # print(_index)
-        self.index = _index
-        pos = self.position_list[self.index]
-        self.buf.seek(pos)
-
-        self.read_image_line_data(0, True)
-        # print(self.image_array[self.index])
+            return pixel_array
 
     def read_data(self):
+        all_array = []
         for i in range(self.height):
-            self.read_line_data(i)
+            # 获取每行的偏移地址
+            pos = self.position_list[i]
+            # 定位到偏移地址
+            self.buf.seek(pos)
+            
+            pixel_array = self.read_image_line_data(self.buf, 0, self.width)
+            all_array.append(pixel_array)
 
-        return self.image_array
+        rt = np.array(all_array)
+        return rt
 
     '''
     def save_file(self, filename='out.jpeg'):
@@ -211,7 +219,10 @@ class QinLib():
         print('count:%d' % libcount)
         f.seek(256)
 
+        f = self.read(self.filename)
+        # 读取lib文件内每个分块的数据 pos length buf
         for i in range(libcount):
+            #print('处理第%d个' % i)
             seek_pos = i * 8 + 256
             f.seek(seek_pos)
             sig_pos = struct.unpack('i', f.read(4))[0]
@@ -222,10 +233,13 @@ class QinLib():
             fileinfo = {}
             fileinfo['pos'] = sig_pos
             fileinfo['length'] = sig_length
-
+            #f.seek(sig_pos)
+            #lrc = LibResClass(f.read(sig_length))
+            #fileinfo['buffer'] = lrc.data.image_array
             self.filelist.append(fileinfo)
         f.close()
 
+    # 根据索引读取文件内容
     def get_xbm_buf(self, index):
         xbminfo = self.filelist[index]
         f = self.read(self.filename)
@@ -233,11 +247,13 @@ class QinLib():
         data = f.read(xbminfo['length'])
         return data
 
+    # 获取图片的数据后 转为数组
     def get_xbm_image(self, index):
         data = self.get_xbm_buf(index)
         lrc = LibResClass(data)
         return lrc.data.image_array
 
+    # 去掉第四位的透明数据
     def combine_one(self, buf):
         width = buf.shape[0]
         height = buf.shape[1]
@@ -248,6 +264,7 @@ class QinLib():
                 ret_array[i, j] = item[:3]
         return ret_array
 
+    # 合并两个图块 buf_2 覆盖在buf_1 上面
     def combine(self, buf_1, buf_2):
         width = buf_1.shape[0]
         height = buf_1.shape[1]
@@ -258,7 +275,7 @@ class QinLib():
                 item_2 = buf_2[i][j]
 
                 ret = item_1[:3]
-                if item_2[3] != 0:
+                if (item_2 != [0, 0, 0]).all():
                     ret = item_2[:3]
                 ret_array[i, j] = ret
         return ret_array
