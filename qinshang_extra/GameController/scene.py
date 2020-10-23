@@ -50,8 +50,9 @@ class SceneMng():
         print('读取xbm %d 个' % count)
 
         to_image = Image.new('RGB', (width_count * 64, height_count * 32))
+
         for i in range(count):
-            print(i)
+            # print(i)
             # 遍历行，遍历完一行就进行下一行遍历
             if i > 0 and i % width_count == 0:
                 line_jishu += 1
@@ -90,12 +91,18 @@ class SceneMng():
                 combine_buffer = ql.combine(buffer_1, buffer_2)
             # mu_item.combine_buffer = combine_buffer
             #print(combine_buffer)
-            from_image = Image.fromarray(np.uint8(combine_buffer))
+            # 数组转为图片数据
+            #print(combine_buffer)
+            #print(combine_buffer.shape[0])
+            #print(combine_buffer.shape[1])
+            from_image = Image.fromarray(np.uint8(combine_buffer), mode='RGBA')
 
             x = int(width_count * 64 / 2 + row_jishu * 32 - line_jishu * 32)  # 每加一行左移32
             y = int(line_jishu * 16 + row_jishu * 16 + 16)
             #print(x,y)
-            to_image.paste(from_image, (x, y), mask=[0,0,0])
+            r,g,b,a = from_image.split()
+
+            to_image.paste(from_image, (x, y), a)
 
             #combine_line_list.append(combine_buffer)
             #line_list.append(mu_item)
@@ -123,7 +130,7 @@ class SceneMng():
 
         for i in range(rows):  # line
             for j in range(columns):  # index
-                print(combine_array)
+                #print(combine_array)
                 combine_array = combine_list[i][j]
                 
                 from_image = Image.fromarray(combine_array.astype('uint8')).convert('RGB')

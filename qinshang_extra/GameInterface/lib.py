@@ -118,7 +118,7 @@ class XBMObject():
         self.height = struct.unpack('i', self.buf.read(4))[0]
 
         # 初始化图片数据的矩阵
-        self.image_array = np.empty(shape=[self.width, self.height, 3],
+        self.image_array = np.empty(shape=[self.width, self.height, 4],
                                     dtype=int)
         # 定位到数据段
         self.buf.seek(64)
@@ -139,7 +139,7 @@ class XBMObject():
         g_888 = (g_mask & color) >> 3  # 右移动5 左移动2
         b_888 = (b_mask & color) << 3  # 左移动3
 
-        return (r_888, g_888, b_888)
+        return (r_888, g_888, b_888, 255)
 
     def read_image_line_data(self, buf, current_count, width):
         pixel_array = []
@@ -152,7 +152,7 @@ class XBMObject():
         zero_count = int(struct.unpack('h', buf.read(2))[0]/2)
 
         for i in range(zero_count):
-            pixel_array.append((0, 0, 0))
+            pixel_array.append((0, 0, 0, 0))
             # 颜色计数器+1
             current_count += 1
         if (current_count < width):
@@ -257,7 +257,7 @@ class QinLib():
     def combine_one(self, buf):
         width = buf.shape[0]
         height = buf.shape[1]
-        ret_array = np.empty(shape=[width, height, 3], dtype=int)
+        ret_array = np.empty(shape=[width, height, 4], dtype=int)
         for i in range(0, buf.shape[0]):
             for j in range(0, buf.shape[1]):
                 item = buf[i][j]
@@ -268,15 +268,15 @@ class QinLib():
     def combine(self, buf_1, buf_2):
         width = buf_1.shape[0]
         height = buf_1.shape[1]
-        ret_array = np.empty(shape=[width, height, 3], dtype=int)
+        ret_array = np.empty(shape=[width, height, 4], dtype=int)
         for i in range(0, buf_1.shape[0]):
             for j in range(0, buf_1.shape[1]):
                 item_1 = buf_1[i][j]
                 item_2 = buf_2[i][j]
 
-                ret = item_1[:3]
-                if (item_2 != [0, 0, 0]).all():
-                    ret = item_2[:3]
+                ret = item_1
+                if (item_2[3] != 0).all():
+                    ret = item_2
                 ret_array[i, j] = ret
         return ret_array
 
