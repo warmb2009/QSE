@@ -96,6 +96,7 @@ class MapResClass(BaseClass):
             mu.height = struct.unpack('c', f.read(1))[0]
             mu.terrain = struct.unpack('c', f.read(1))[0]
             mu.scneffid = struct.unpack('h', f.read(2))[0]
+            print(mu.id_1)
             self.mu_list.append(mu)
             num -= 1
 
@@ -129,47 +130,6 @@ class MapResClass(BaseClass):
 
         # 读取mu数据，放入列表
         self.mu_list = self.read_data(num, f)
-
-        '''
-        blk_list1 = []
-        blk_list2 = []
-
-        tiled_list1 = []
-        tiled_list2 = []
-
-        for i in range(len(self.mu_list)):
-            mu = self.mu_list[i]
-            blk_list1.append(mu.id_1)
-            blk_list2.append(mu.id_2)
-
-        for i in range(len(blk_list1)):
-            mu1 = blk_list1[i]
-            mu2 = blk_list2[i]
-            #print('%d\t:%d'% (i+1, mu))
-            tiled_str = '<tile id="%d"><image width="64" height="32" \
-                source="D:/qin_export/Bei/%s.png"/></tile>' % \
-                    (i+1, str(mu+1) + '-1')
-            tiled_str2 = '<tile id="%d"><image width="64" height="32" \
-                source="D:/qin_export/Bei/%s.png"/></tile>' % \
-                    (i+1, str(mu2+1) + '-1')
-            tiled_list1.append(tiled_str)
-            tiled_list2.append(tiled_str2)
-
-        self.write('tiled_list1', tiled_list1)
-        self.write('tiled_list2', tiled_list2)
-        num_list = []
-        x = 192
-        for i in range(1, x*x+1):
-            num_list.append(str(i))
-        t = ','.join(num_list)
-        self.write_str('num_list1', t)
-
-        num_list2 = []
-        for test in range(36865, 36865+x*x):
-            num_list2.append(str(test))
-        tt = ','.join(num_list2)
-        self.write_str('num_list2', tt)
-        '''
 
     def write_str(self, file_path, num_str):
         f = open(file_path, 'w')

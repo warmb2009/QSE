@@ -57,6 +57,7 @@ class LibResClass():
             self.type = 1
             self.data = XBMObject(self.buf)
 
+
 # 读取xbm序列帧
 class XBMGroupObject():
     def __init__(self, _buf):
@@ -169,14 +170,13 @@ class XBMObject():
                 current_count += 1
 
         if (current_count < width):
-            # 继续读取后面的颜色            
+            # 继续读取后面的颜色
             r_array = self.read_image_line_data(buf,
                                                 current_count,
                                                 width)
             pixel_array.extend(r_array)  # 合并迭代数组
-            return pixel_array
-        else:
-            return pixel_array
+
+        return pixel_array
 
     def read_data(self):
         all_array = []
@@ -185,10 +185,10 @@ class XBMObject():
             pos = self.position_list[i]
             # 定位到偏移地址
             self.buf.seek(pos)
-            
+
             pixel_array = self.read_image_line_data(self.buf, 0, self.width)
             all_array.append(pixel_array)
-
+        # 转为np数组
         rt = np.array(all_array)
         return rt
 
@@ -212,7 +212,7 @@ class QinLib():
 
     def initdata(self, _filename=''):
         f = self.read(_filename)
-        # libtype = struct.unpack('8s', f.read(8))
+        
         f.seek(16)  # 读取头
         libcount = struct.unpack('i', f.read(4))[0]  # 读取数量
         self.filecount = libcount
@@ -220,9 +220,9 @@ class QinLib():
         f.seek(256)
 
         f = self.read(self.filename)
+
         # 读取lib文件内每个分块的数据 pos length buf
         for i in range(libcount):
-            #print('处理第%d个' % i)
             seek_pos = i * 8 + 256
             f.seek(seek_pos)
             sig_pos = struct.unpack('i', f.read(4))[0]
@@ -233,11 +233,13 @@ class QinLib():
             fileinfo = {}
             fileinfo['pos'] = sig_pos
             fileinfo['length'] = sig_length
-            #f.seek(sig_pos)
-            #lrc = LibResClass(f.read(sig_length))
-            #fileinfo['buffer'] = lrc.data.image_array
             self.filelist.append(fileinfo)
         f.close()
+
+    def get_zero_buf(self, width, height):
+        empty_buf = np.zeros(shape=[width, height, 4],
+                                    dtype=int)
+        return empty_buf
 
     # 根据索引读取文件内容
     def get_xbm_buf(self, index):
@@ -282,12 +284,3 @@ class QinLib():
 
     def combine_map(self, width, height):
         pass
-
-'''
-if __name__ == '__main__':
-    test = QinLib('../Res/snow.lib')
-
-    data = test.get_xbm_buf(0)
-    xbm = QinXBM(data)
-    xbm.save_file('test.bmp')
-'''

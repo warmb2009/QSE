@@ -39,12 +39,6 @@ class SceneMng():
         ql = QinLib(lib_path)
         count = len(mu_list)
 
-        content_list = []
-        line_list = []
-
-        combine_list = []
-        combine_line_list = []
-
         line_jishu = 0  # 行计数器
         row_jishu = 0
         print('读取xbm %d 个' % count)
@@ -57,69 +51,47 @@ class SceneMng():
             if i > 0 and i % width_count == 0:
                 line_jishu += 1
                 row_jishu = 0
-                '''
-                print('共 %d 行， 读取完一行 %d'% (int(width_count), line_jishu))
-                content_list.append(line_list)
-                line_list = []
-
-                combine_list.append(combine_line_list)
-                combine_line_list = []
-                '''
 
             # mu文件
             mu_item = mu_list[i]
 
             index_1 = mu_item.id_1
             index_2 = mu_item.id_2
+
             # 读取xbm
-            # print('读取xbm')
-            
-            # buffer_1 = None if index_1 == -1 else ql.filelist[index_1]['buffer']
-            # buffer_2 = None if index_2 == -1 else ql.filelist[index_2]['buffer']
             buffer_1 = None if index_1 == -1 else ql.get_xbm_image(index_1)
             buffer_2 = None if index_2 == -1 else ql.get_xbm_image(index_2)
 
             combine_buffer = None
-            if index_1 == index_2 == -1:
+            if index_1 == index_2 == -1:  # 空瓦块
                 combine_buffer = None
-                continue
             elif index_1 == -1:
                 combine_buffer = buffer_2
             elif index_2 == -1:
                 combine_buffer = buffer_1
             else:
                 combine_buffer = ql.combine(buffer_1, buffer_2)
-            # mu_item.combine_buffer = combine_buffer
-            #print(combine_buffer)
-            # 数组转为图片数据
-            #print(combine_buffer)
-            #print(combine_buffer.shape[0])
-            #print(combine_buffer.shape[1])
-            from_image = Image.fromarray(np.uint8(combine_buffer), mode='RGBA')
 
-            x = int(width_count * 64 / 2 + row_jishu * 32 - line_jishu * 32)  # 每加一行左移32
-            y = int(line_jishu * 16 + row_jishu * 16 + 16)
-            #print(x,y)
-            r,g,b,a = from_image.split()
+            if combine_buffer is not None:  # 非空瓦块才画上，空瓦块跳过
+                from_image = Image.fromarray(np.uint8(combine_buffer), mode='RGBA')
 
-            to_image.paste(from_image, (x, y), a)
-
-            #combine_line_list.append(combine_buffer)
-            #line_list.append(mu_item)
+                x = int(width_count * 64 / 2 + row_jishu * 32 - line_jishu * 32)  # 每加一行左移32
+                y = int(line_jishu * 16 + row_jishu * 16 + 16)
+                r, g, b, a = from_image.split()  # 分离出透明通道
+                to_image.paste(from_image, (x, y), a)  # 画瓦块
             row_jishu += 1
-            '''
-        if i == count - 1:
-            # pass
-            combine_list.append(combine_line_list)
-            '''
+
         print('读取完毕')
         # 建立一个地图数据字典，存储宽高和要显示的图块
         map_info = {}
         map_info['cx'] = width_count
         map_info['cy'] = height_count
-        # return to_image
-        # map_info['info'] = self.CombineMap(width_count, height_count, combine_list)
-        map_info['info'] = np.array(to_image)
+        
+        # 维度反了 行、列交换
+        np_image_array = np.array(to_image).swapaxes(1, 0)
+        im = Image.fromarray(np.array(to_image))
+        im.save('ut.jpeg')
+        map_info['info'] = np_image_array
         return map_info
 
     def CombineMap(self, columns, rows, combine_list):
