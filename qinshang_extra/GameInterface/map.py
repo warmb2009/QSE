@@ -120,7 +120,7 @@ class MapResClass(BaseClass):
         self.lib_header = self.LibHeader()
         self.lib_header.libversion = struct.unpack('16c', f.read(16))[0]
         
-        self.lib_header.libname = struct.unpack('256s', f.read(256))[0].replace(b'\xcc', b'').replace(b'\x00', b'').decode()
+        self.lib_header.libname = str(struct.unpack('256s', f.read(256))[0].split(b'\x00')[0], encoding = "gb2312")
         self.lib_header.libnum = int(struct.unpack('h', f.read(2))[0])
         self.lib_header.libsizenum = int(struct.unpack('i', f.read(4))[0])
 

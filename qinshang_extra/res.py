@@ -10,7 +10,7 @@
 import threading
 from GameController.scene import *
 import os.path        
-
+from GameInterface.gameglobal import *
 
 class LibResSingleton(object):
     _instance_lock = threading.Lock()
@@ -29,7 +29,8 @@ class LibResSingleton(object):
 
 
     def LoadScn(self, scn_name):
-        scn_folder = '/home/jeroen/work/qinshang/QSE/datas/SCENE/Scn_new/'
+        # scn_folder = '/home/jeroen/work/qinshang/QSE/datas/SCENE/Scn_new/'
+        scn_folder = GetScnPath()
         scn_path = os.path.join(scn_folder, scn_name)
         sc = SceneMng()
         self.map_info = sc.LoadScene(scn_path)

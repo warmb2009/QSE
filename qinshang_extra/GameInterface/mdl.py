@@ -80,7 +80,6 @@ class MdlResClass():
     # 类的初始化操作
     def __init__(self, _filename):
         self.file_name = _filename
-
         self.file_header = None
 
         # 部件集合
@@ -95,29 +94,33 @@ class MdlResClass():
     # 详细的mdl文件数据的初始化过程
     def InitData(self):
         f = self.read(self.file_name)
-
+        print(self.file_name)
         # 读取mdl文件的头部
         self.file_header = self.FileHeader()
         self.file_header.tag = struct.unpack('16c', f.read(16))[0]
         self.file_header.version = struct.unpack('16c', f.read(16))[0]
         self.file_header.inum = int(struct.unpack('h', f.read(2))[0])
 
-        self.file_header.szname = struct.unpack('256c', f.read(256))[0]
+        self.file_header.szname = str(struct.unpack('256c', f.read(256))[0].split(b'\x00')[0], encoding = "gb2312")
         self.file_header.reserved = struct.unpack('94c', f.read(94))[0]
         self.file_header.printc()
 
         # 以下开始读取mdl文件里的各个部件数据
         num = self.file_header.inum
+        print(num)
         while num:
+            #print(num)
             # 先读取大部件数据
             bld = self.SModelObject()
-
-            bld.itype = int(struct.unpack('h', f.read(2))[0])
-            or_name = struct.unpack('32s', f.read(32))[0]  # 大部件名称
-            bld.szName = or_name.replace(b'\xcd', b'')
+            #print(f)
+            bld.itype = struct.unpack('h', f.read(2))
+            
+            # 大部件名称
+            bld.szName = str(struct.unpack('32s', f.read(32))[0].split(b'\x00')[0], encoding = "gb2312")
+            
             bld.wManualID = struct.unpack('h', f.read(2))[0]
-            bld.wAutoID = struct.unpack('h', f.read(2))[0]
-            bld.PartMng_LPSTR = struct.unpack('2h', f.read(4))[0]
+            bld.wAutoID = struct.unpack('h', f.read(2))[0]  # 部件id
+            bld.PartMng_LPSTR = struct.unpack('2h', f.read(4))[0]  # 指针
 
             bld.PartNum = struct.unpack('h', f.read(2))[0]
             bld.DownNum = struct.unpack('h', f.read(2))[0]
@@ -133,6 +136,7 @@ class MdlResClass():
 
             bld.m_gpCharacter = struct.unpack('20i', f.read(80))[0]
 
+            # 统计各部件高度
             for i in range(bld.m_cyDisMetrix):
                 for j in range(bld.m_cxDisMetrix):
                     '''
@@ -147,25 +151,25 @@ class MdlResClass():
             bld.m_bAniDisplay = struct.unpack('c', f.read(1))[0]
 
             # 读取部件下的小部件
-            num = bld.PartNum
-            while num:
+            part_num = bld.PartNum
+            while part_num:
                 a_bld = self.PartialModalObject()
 
                 or_m_name = struct.unpack('8s', f.read(8))[0]  # 小部件名称
                 a_bld.m_szName = or_m_name.replace(b'\xcd', b'')
 
-                a_bld.m_booIsSpr = struct.unpack('c', f.read(1))[0]
+                a_bld.m_booIsSpr = struct.unpack('c', f.read(1))[0]  # 是否是帧动画
                 a_bld.m_dPicID = struct.unpack('i', f.read(4))[0]  # 小部件图片
 
-                a_bld.m_pos_x = struct.unpack('i', f.read(4))[0]
-                a_bld.m_pos_y = struct.unpack('i', f.read(4))[0]
+                a_bld.m_pos_x = struct.unpack('i', f.read(4))[0]  # 位置数据
+                a_bld.m_pos_y = struct.unpack('i', f.read(4))[0]  # 位置数据
 
                 bld.PartMng.append(a_bld)
                 # 计数器-1
-                num -= 1
+                part_num -= 1
 
             self.m_apMdl.append(bld)  # 加入部件库
-            self.idTable[bld.wAutoID] = bld  # 加入对应表
+            self.idTable[bld.wAutoID] = bld  # 加入对应表 可以根据autoid 获取部件
 
             # 计数器 -1
             num -= 1

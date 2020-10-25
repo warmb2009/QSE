@@ -48,14 +48,27 @@ class LibResClass():
 
     def initdata(self):
         b = BytesIO(self.buf)
-        h_str = struct.unpack('8s', b.read(8))[0]
+        h_str = str(struct.unpack('8s', b.read(8))[0].split(b'\x00')[0], encoding = "gb2312")
         # 分辨是否是xbmgroup 序列帧
-        if h_str == b'xbmgroup':
+        if h_str == 'xbmgroup':
+            print('xbmgroup')
             self.type = 0
             self.data = XBMGroupObject(self.buf)
-        else:
+        elif h_str == 'xbm':
+            print('xbm')
             self.type = 1
             self.data = XBMObject(self.buf)
+        else:
+            print('else spr')
+            print(h_str)
+            self.type = 2
+            self.data = b
+            
+
+
+class SprObject():
+    def __init__(self, _buf):
+        pass
 
 
 # 读取xbm序列帧
@@ -216,6 +229,7 @@ class QinLib():
         f.seek(16)  # 读取头
         libcount = struct.unpack('i', f.read(4))[0]  # 读取数量
         self.filecount = libcount
+        print(_filename)
         print('count:%d' % libcount)
         f.seek(256)
 
@@ -228,8 +242,8 @@ class QinLib():
             sig_pos = struct.unpack('i', f.read(4))[0]
             sig_length = struct.unpack('i', f.read(4))[0]
 
-            if sig_length == 0:  # 去掉空数据
-                continue
+            #if sig_length == 0:  # 去掉空数据
+            #    continue
             fileinfo = {}
             fileinfo['pos'] = sig_pos
             fileinfo['length'] = sig_length
@@ -242,18 +256,33 @@ class QinLib():
         return empty_buf
 
     # 根据索引读取文件内容
-    def get_xbm_buf(self, index):
-        xbminfo = self.filelist[index]
+    def get_buf(self, index):
+        #print(self.filelist)
+        #print(index)
+        info = self.filelist[index]
         f = self.read(self.filename)
-        f.seek(xbminfo['pos'])
-        data = f.read(xbminfo['length'])
+        f.seek(info['pos'])
+        data = f.read(info['length'])
+        print('pos and length')
+        print(hex(info['pos']), hex(info['length']))
+        
         return data
 
     # 获取图片的数据后 转为数组
-    def get_xbm_image(self, index):
-        data = self.get_xbm_buf(index)
+    def get_image(self, index):
+        data = self.get_buf(index)
         lrc = LibResClass(data)
-        return lrc.data.image_array
+
+        #return lrc
+        ret_object = None
+        if lrc.type == 0:  # xbm group 数据
+            pass
+        if lrc.type == 1:  # xbm 数据
+            ret_object = lrc.data.image_array
+        if lrc.type == 2:  # spr 数据
+            ret_object = data
+
+        return ret_object
 
     # 去掉第四位的透明数据
     def combine_one(self, buf):

@@ -16,8 +16,8 @@ from PIL import Image
 if __name__ == '__main__':
     # 初始化资源数据工厂
     lrs = LibResSingleton()
-    #lrs.LoadScn('zhc_house1.Scn')
-    lrs.LoadScn('zhaocun1.Scn')
+    lrs.LoadScn('zhc_house1.Scn')
+    # lrs.LoadScn('zhaocun1.Scn')
     map_info = lrs.map_info
     # 获取 某场景的map数据
     cx = map_info['cx']

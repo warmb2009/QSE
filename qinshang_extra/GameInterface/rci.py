@@ -27,7 +27,7 @@ class Ini(BaseClass):
         self.iMin = 0
         self.iMax = 0
         self.nNum = 0
-
+        self.lib_name = ''
 
 class ResMng(BaseClass):
     def __init__(self, _filename):
@@ -47,6 +47,7 @@ class ResMng(BaseClass):
                     ini.nNum = nNum
                     ini.iMin = int(row[1])
                     ini.iMax = int(row[2])
+                    ini.lib_name = row[3]
                     self.ini_list[nNum] = ini
 
     def printc(self):
@@ -59,9 +60,13 @@ class ResMng(BaseClass):
         libid = dResID & 0xff0000
         fact_libid = libid >> 18
 
+        fact_lib_name = self.ini_list[fact_libid].szTemp
+        lib_file_name = self.ini_list[fact_libid].lib_name
         print('Fact Res libID: %d' % fact_resid)
         print('fact lib id: %d' % fact_libid)
         print('fact lib name: %s' % self.ini_list[fact_libid].szTemp)
+        return fact_lib_name, fact_resid, lib_file_name
+
 
 '''  
 if __name__ == '__main__':

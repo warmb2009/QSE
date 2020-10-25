@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import struct
-from mdl import MdlBase
-from ini import ResMng
 
 
 class BaseClass():
@@ -11,7 +9,7 @@ class BaseClass():
             print('<--- ' + i + ' : ' + str(j) + ' --->')
 
 
-class BntBase():
+class BntResClass():
     class FileHeader(BaseClass):
         def __init__(self):
             self.tag = ''  # SoloInit
@@ -41,7 +39,8 @@ class BntBase():
             '''
             self.itype = 0  # 类型
             self.iModelAutoID = 0  # 物品ID
-            self.gp_map_pos = 0  # 地图上的坐标
+            self.gp_map_pos_x = 0  # 地图上的坐标
+            self.gp_map_pos_y = 0  # 地图上的坐标
             self.reserve = 0  # 保留块
             self.init_name_num = 0  # 名称模块数量
             self.init_name = ''  # 名称（可选）
@@ -61,7 +60,7 @@ class BntBase():
         self.file_header.version = struct.unpack('16c', f.read(16))[0]
         self.file_header.inum = int(struct.unpack('h', f.read(2))[0])
 
-        self.file_header.mdl_name = struct.unpack('256c', f.read(256))[0]
+        self.file_header.mdl_name = str(struct.unpack('256s', f.read(256))[0].split(b'\x00')[0], encoding = "gb2312")
         self.file_header.mdl_num = int(struct.unpack('h', f.read(2))[0])
         self.file_header.role_name = struct.unpack('256c', f.read(256))[0]
         self.file_header.role_num = int(struct.unpack('h', f.read(2))[0])
@@ -79,19 +78,9 @@ class BntBase():
             print('bld.type: %d' % bld.itype)
             bld.iModelAutoID = struct.unpack('h', f.read(2))[0]
 
-            ''' 测试读取资源
-            mybld = mdlMng.get(bld.iModelAutoID)
-            mng = mybld.PartMng
-            res_mng = ResMng('a.csv')
-            res_mng.printc()
+            bld.gp_map_pos_x = struct.unpack('i', f.read(4))[0]
+            bld.gp_map_pos_y = struct.unpack('i', f.read(4))[0]
 
-            for b in mng:
-                print(b.m_dPicID)
-                print(res_mng.get(b.m_dPicID))
-            return
-            '''
-
-            bld.gp_map_pos = struct.unpack('2i', f.read(8))[0]
             bld.reserve = struct.unpack('2h', f.read(4))[0]
             bld.init_name_num = struct.unpack('i', f.read(4))[0]
             if bld.init_name_num > 0:
@@ -100,6 +89,7 @@ class BntBase():
                 bld.sztrigeer = struct.unpack('128c', f.read(128))[0]
 
             bld.printc()
+            self.mdl_list.append(bld)
             print("%d : %s" % (bld.iModelAutoID, hex(bld.iModelAutoID)))
             num -= 1
         print('共有%d个组件' % self.file_header.inum)
@@ -108,10 +98,5 @@ class BntBase():
         f = open(_filename, 'rb')
         return f
 
-
-'''
-if __name__ == '__main__':
-    file_name = '/home/jeroen/work/qinshang/game/SCENE/Int/zhc_house1.BNT'
-    # file_name = '/home/jeroen/work/qinshang/game/SCENE/Int/zhaocun1.BNT'
-    bnt = BntBase(file_name)
-'''
+    def get(self, _autoid):
+        return self.mdl_list[_autoid]
