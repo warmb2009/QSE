@@ -248,7 +248,7 @@ class SceneMng():
         map_name = SrcInfo['map_name']
         bnt_name = SrcInfo['intbld']
         ont_name = SrcInfo['intobj']
-        print(bnt_name)
+        #print(bnt_name)
         #return
         
         # 加载map文件

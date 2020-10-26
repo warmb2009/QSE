@@ -12,20 +12,22 @@ from res import *
 import pygame, sys, time
 from pygame.locals import *
 from PIL import Image
+import time, datetime
+
 
 if __name__ == '__main__':
+    print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+
+    start = datetime.datetime.now()
+
     # 初始化资源数据工厂
     lrs = LibResSingleton()
-    lrs.LoadScn('zhc_house1.Scn')
-    # lrs.LoadScn('zhaocun1.Scn')
+    #lrs.LoadScn('zhc_house1.Scn')
+    lrs.LoadScn('zhaocun1.Scn')
     map_info = lrs.map_info
     # 获取 某场景的map数据
     cx = map_info['cx']
     cy = map_info['cy']
-    # 获取图片数据
-    buf = map_info['info']
-    print(buf.shape[0])
-    print(buf.shape[1])
 
     # pygame初始化
     pygame.init()
@@ -33,8 +35,11 @@ if __name__ == '__main__':
     width = cx * 64
     height = cy * 32
     window = pygame.display.set_mode((width, height))
-
+    # 地图显示
     surf = pygame.Surface((width, height), pygame.SRCALPHA)
+
+    # 获取图片数据
+    buf = map_info['info']
 
     # buf绘制到surf
     pygame.surfarray.blit_array(surf, buf)
@@ -47,6 +52,11 @@ if __name__ == '__main__':
     fps_count = 0
     start_fps = time.time()
     clock = pygame.time.Clock()
+
+    print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+    end = datetime.datetime.now()
+    print((end - start).seconds)  # 5
+
 
     while True:
         clock.tick(600)

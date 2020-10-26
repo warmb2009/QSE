@@ -51,16 +51,12 @@ class LibResClass():
         h_str = str(struct.unpack('8s', b.read(8))[0].split(b'\x00')[0], encoding = "gb2312")
         # 分辨是否是xbmgroup 序列帧
         if h_str == 'xbmgroup':
-            print('xbmgroup')
             self.type = 0
             self.data = XBMGroupObject(self.buf)
         elif h_str == 'xbm':
-            print('xbm')
             self.type = 1
             self.data = XBMObject(self.buf)
         else:
-            print('else spr')
-            print(h_str)
             self.type = 2
             self.data = b
             
@@ -224,6 +220,7 @@ class QinLib():
         return f
 
     def initdata(self, _filename=''):
+
         f = self.read(_filename)
         
         f.seek(16)  # 读取头
@@ -233,7 +230,7 @@ class QinLib():
         print('count:%d' % libcount)
         f.seek(256)
 
-        f = self.read(self.filename)
+        #f = self.read(self.filename)
 
         # 读取lib文件内每个分块的数据 pos length buf
         for i in range(libcount):
@@ -242,8 +239,6 @@ class QinLib():
             sig_pos = struct.unpack('i', f.read(4))[0]
             sig_length = struct.unpack('i', f.read(4))[0]
 
-            #if sig_length == 0:  # 去掉空数据
-            #    continue
             fileinfo = {}
             fileinfo['pos'] = sig_pos
             fileinfo['length'] = sig_length
@@ -257,15 +252,12 @@ class QinLib():
 
     # 根据索引读取文件内容
     def get_buf(self, index):
-        #print(self.filelist)
-        #print(index)
         info = self.filelist[index]
         f = self.read(self.filename)
         f.seek(info['pos'])
         data = f.read(info['length'])
-        print('pos and length')
-        print(hex(info['pos']), hex(info['length']))
         
+        f.close()
         return data
 
     # 获取图片的数据后 转为数组

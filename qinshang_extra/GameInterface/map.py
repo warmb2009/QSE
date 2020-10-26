@@ -96,7 +96,7 @@ class MapResClass(BaseClass):
             mu.height = struct.unpack('c', f.read(1))[0]
             mu.terrain = struct.unpack('c', f.read(1))[0]
             mu.scneffid = struct.unpack('h', f.read(2))[0]
-            print(mu.id_1)
+            
             self.mu_list.append(mu)
             num -= 1
 
