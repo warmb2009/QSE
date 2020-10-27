@@ -226,11 +226,9 @@ class QinLib():
         f.seek(16)  # 读取头
         libcount = struct.unpack('i', f.read(4))[0]  # 读取数量
         self.filecount = libcount
-        print(_filename)
-        print('count:%d' % libcount)
+        #print(_filename)
+        #print('count:%d' % libcount)
         f.seek(256)
-
-        #f = self.read(self.filename)
 
         # 读取lib文件内每个分块的数据 pos length buf
         for i in range(libcount):
@@ -285,22 +283,6 @@ class QinLib():
             for j in range(0, buf.shape[1]):
                 item = buf[i][j]
                 ret_array[i, j] = item[:3]
-        return ret_array
-
-    # 合并两个图块 buf_2 覆盖在buf_1 上面
-    def combine(self, buf_1, buf_2):
-        width = buf_1.shape[0]
-        height = buf_1.shape[1]
-        ret_array = np.empty(shape=[width, height, 4], dtype=int)
-        for i in range(0, buf_1.shape[0]):
-            for j in range(0, buf_1.shape[1]):
-                item_1 = buf_1[i][j]
-                item_2 = buf_2[i][j]
-
-                ret = item_1
-                if (item_2[3] != 0).all():
-                    ret = item_2
-                ret_array[i, j] = ret
         return ret_array
 
     def combine_map(self, width, height):

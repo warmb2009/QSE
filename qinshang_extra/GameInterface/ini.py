@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
+
 '''
 @文件    :ini.py
 @说明    :
@@ -29,7 +30,7 @@ class Ini(BaseClass):
         self.nNum = 0
         self.file_name = ''
 
-class ResMng(BaseClass):
+class IniMng(BaseClass):
     def __init__(self, _filename):
         self.ini_list = {}
         self.InitData(_filename)
@@ -64,12 +65,3 @@ class ResMng(BaseClass):
         print('Fact Res libID: %d' % fact_resid)
         print('fact lib id: %d' % fact_libid)
         print('fact lib name: %s' % self.ini_list[fact_libid].szTemp)
-        
-'''      
-if __name__ == '__main__':
-    resMng = ResMng('a.csv')
-    resMng.printc()
-
-    resMng.get(2111334)
-    resMng.get(2099548)
-'''l

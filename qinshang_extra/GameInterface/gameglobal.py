@@ -8,7 +8,7 @@
 @版本    :1.0
 '''
 import os.path
-
+import numpy as np
 
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
@@ -53,3 +53,20 @@ def GetOntPath():
     获取ont文件目录
     '''
     return os.path.join(PROJECT_ROOT, '../../datas/SCENE/Ont')
+
+
+# 合并两个图块 buf_2 覆盖在buf_1 上面
+def combine( buf_1, buf_2):
+    width = buf_1.shape[0]
+    height = buf_1.shape[1]
+    ret_array = np.empty(shape=[width, height, 4], dtype=int)
+    for i in range(0, buf_1.shape[0]):
+        for j in range(0, buf_1.shape[1]):
+            item_1 = buf_1[i][j]
+            item_2 = buf_2[i][j]
+
+            ret = item_1
+            if (item_2[3] != 0).all():
+                ret = item_2
+            ret_array[i, j] = ret
+    return ret_array

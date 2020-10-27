@@ -12,8 +12,8 @@ from GameInterface.scn import *
 from GameInterface.map import *
 from GameInterface.bnt import *
 from GameInterface.mdl import *
-from GameInterface.lib import *
 from GameInterface.rci import *
+from GameInterface.libres import *
 
 import os.path
 import numpy as np
@@ -35,19 +35,21 @@ class Scene():
         width_count = self.mpResMng.file_header.cx
         height_count = self.mpResMng.file_header.cy
 
-        # 加载lib资源
+        # 加载lib资源 构造lib文件路径
         lib_folder = GetResPath()
         lib_path = os.path.join(lib_folder, libname)
+
         print(libname)
         # 初始化lib类
-        print('初始化lib类')
-        ql = QinLib(lib_path)
+        print('初始化lib管理类')
+        rm = ResMng()
         count = len(mu_list)
 
         line_jishu = 0  # 行计数器
         row_jishu = 0
         print('读取xbm %d 个' % count)
 
+        # 生成一张大图
         to_image = Image.new('RGB', (width_count * 64, height_count * 32))
 
         for i in range(count):
@@ -64,8 +66,8 @@ class Scene():
             index_2 = mu_item.id_2
 
             # 读取xbm
-            buffer_1 = None if index_1 == -1 else ql.get_image(index_1)
-            buffer_2 = None if index_2 == -1 else ql.get_image(index_2)
+            buffer_1 = None if index_1 == -1 else rm.get_map_image(lib_path, index_1)
+            buffer_2 = None if index_2 == -1 else rm.get_map_image(lib_path, index_2)
 
             combine_buffer = None
             if index_1 == index_2 == -1:  # 空瓦块
@@ -75,7 +77,7 @@ class Scene():
             elif index_2 == -1:
                 combine_buffer = buffer_1
             else:
-                combine_buffer = ql.combine(buffer_1, buffer_2)
+                combine_buffer = combine(buffer_1, buffer_2)  # 这里合并函数 暂时放入全局文件中
 
             if combine_buffer is not None:  # 非空瓦块才画上，空瓦块跳过
                 from_image = Image.fromarray(np.uint8(combine_buffer), mode='RGBA')
@@ -83,7 +85,7 @@ class Scene():
                 x = int(width_count * 64 / 2 + row_jishu * 32 - line_jishu * 32)  # 每加一行左移32
                 y = int(line_jishu * 16 + row_jishu * 16 + 16)
                 r, g, b, a = from_image.split()  # 分离出透明通道
-                to_image.paste(from_image, (x, y), a)  # 画瓦块
+                to_image.paste(from_image, (x, y), a)  # 画瓦块到 地形大图
             row_jishu += 1
 
         print('读取完毕')
@@ -139,13 +141,10 @@ class Scene():
         # 绘制瓦片到大图
         if combine is None:
             return
-        #print(combine)
-        #print(combine.shape[0])
-        #print(combine.shape[1])
         # 坐标从中心位置转为左上角
         o_x = x - 32 
         o_y = y - 16
-        # print('o_x:%d, o_y:%d' % (o_x, o_y))
+        
         for i in range(32):# 行
             for j in range(64): # 列
                 i_x = o_x + j
@@ -181,7 +180,7 @@ class Scene():
         
 
         # 初始化资源ID转换类
-        rm = ResMng(GetResIniPath())
+        rm = ResMng()
         
 
         num = 0
@@ -256,12 +255,12 @@ class Scene():
         map_path = os.path.join(map_folder, map_name)
 
         # 读取map文件的图块
-        map_array = self.LoadMap(map_path)
+        #map_array = self.LoadMap(map_path)
         
         # 加载 场景的物品 文件。注意，物件可进行操作，或是遮挡玩家，所以不能直接覆盖到底层地图上
         bnt_folder = GetBntPath()
         bnt_path = os.path.join(bnt_folder, bnt_name)
 
         # 读物bnt文件的图块
-        #bld_array = self.LoadBnt(bnt_path)
+        bld_array = self.LoadBnt(bnt_path)
         return map_array
