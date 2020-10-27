@@ -29,7 +29,7 @@ class Ini(BaseClass):
         self.nNum = 0
         self.lib_name = ''
 
-class ResMng(BaseClass):
+class IniMng(BaseClass):
     def __init__(self, _filename):
         self.ini_list = {}
         self.InitData(_filename)

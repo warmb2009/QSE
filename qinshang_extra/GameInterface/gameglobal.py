@@ -12,6 +12,12 @@ import numpy as np
 
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
+def GetResPath():
+    '''
+    获取Res lib文件目录
+    '''
+    return os.path.join(PROJECT_ROOT, '../../datas/Res/')
+
 def GetResIniPath():
     '''
     获取资源对应ID文件
@@ -23,12 +29,6 @@ def GetMdlPath():
     获取mdl文件目录
     '''
     return os.path.join(PROJECT_ROOT, '../../datas/mdl/')
-
-def GetResPath():
-    '''
-    获取Res lib文件目录
-    '''
-    return os.path.join(PROJECT_ROOT, '../../datas/Res/')
 
 def GetScnPath():
     '''

@@ -8,7 +8,7 @@
 @版本    :1.0
 '''
 from GameInterface.lib import *
-from GameInterface.ini import *
+from GameInterface.rci import *
 from GameInterface.gameglobal import *
 
 
@@ -20,11 +20,11 @@ class ResMng():
 
     # 根据资源id获取物体的图片数据
     def get_image(self, res_id):
-        if not self.image_list.has_key(res_id):
-            # 获取ini文件数据
-            rm = IniMng(GetResIniPath())
+        if not res_id in  self.image_list.keys():
+            # 获取ini文件数据GetResIniPath
+            im = IniMng(GetResIniPath())
             # 将资源总id 转为文件内资源id
-            libname, libid, libfilename = rm.get(res_id)
+            libname, libid, libfilename = im.get(res_id)
             lib_file_path = os.path.join( GetResPath(), libfilename)  # 构造资源文件路径
 
             ql = QinLib(lib_file_path)
@@ -46,7 +46,7 @@ class ResMng():
 
         if not res_id in sign_list.keys():
             ql = QinLib(lib_file_path)
-            image_array = ql.get_image(res_id)
+            image_array = ql.get_image(res_id).item.image_array
             sign_list[res_id] = image_array
         
         return sign_list[res_id]

@@ -42,7 +42,7 @@ class LibResClass():
     def __init__(self, _buf):
         self.type = 0
         self.buf = _buf
-        self.data = None
+        self.item = None
 
         self.initdata()
 
@@ -52,24 +52,26 @@ class LibResClass():
         # 分辨是否是xbmgroup 序列帧
         if h_str == 'xbmgroup':
             self.type = 0
-            self.data = XBMGroupObject(self.buf)
+            self.item = XBMGroupObject(self.buf)
         elif h_str == 'xbm':
             self.type = 1
-            self.data = XBMObject(self.buf)
-        else:
+            self.item = XBMObject(self.buf)
+        else:  # spr
             self.type = 2
-            self.data = b
-            
+            self.item = SprObject(self.buf)
+        
 
-
+# 读取帧动画数据
 class SprObject():
     def __init__(self, _buf):
+
         pass
 
 
 # 读取xbm序列帧
 class XBMGroupObject():
     def __init__(self, _buf):
+        self.type = 0
         self.buf = BytesIO(_buf)
         self.szName = ''
         self.iNum = 0
@@ -103,20 +105,22 @@ class XBMGroupObject():
 
 class XBMObject():
     def __init__(self, _buf):
-        self.buf = BytesIO(_buf)
-        self.szName = ''
+        self.buf = BytesIO(_buf)  # 内存
+        self.szName = ''  # 名称
         self.iVer = 0
-        self.width = 0
-        self.height = 0
-        self.position_list = []
+        self.width = 0  # 图片宽度
+        self.height = 0  # 图片高度
+        self.position_list = []  # 索引表
         self.index = 0
 
-        self.image_array = None
+        #self.image_array = None  # 像素点阵
         self.InitData()
         self.image_array = self.read_data()
 
         return
 
+    def get_image_array():
+        return self.image_array
     # xbm 类型图片初始化
     def InitData(self):
         self.szName = struct.unpack('16s', self.buf.read(16))
@@ -261,18 +265,7 @@ class QinLib():
     # 获取图片的数据后 转为数组
     def get_image(self, index):
         data = self.get_buf(index)
-        lrc = LibResClass(data)
-
-        #return lrc
-        ret_object = None
-        if lrc.type == 0:  # xbm group 数据
-            pass
-        if lrc.type == 1:  # xbm 数据
-            ret_object = lrc.data.image_array
-        if lrc.type == 2:  # spr 数据
-            ret_object = data
-
-        return ret_object
+        return LibResClass(data)
 
     # 去掉第四位的透明数据
     def combine_one(self, buf):

@@ -202,19 +202,10 @@ class Scene():
                 m_dPicID = bld_item.m_dPicID
                 pos_x = bld_item.m_pos_x
                 pos_y = bld_item.m_pos_y
-
                 
                 # 进行子部件图片加载
-                #libname, libid, libfilename = rm.get(m_dPicID)
-                libname, libid, libfilename = rm.get(m_dPicID)
-                path = os.path.join( GetResPath(), libfilename)
-
                 print(m_dPicID)
-                print(libname, libid)
-                
-                ql = QinLib(path)
-                rt_object = ql.get_image(libid)
-
+                rt_object = rm.get_image(m_dPicID)
                 print(rt_object.type)
 
                 if rt_object.type == 2: # spr
