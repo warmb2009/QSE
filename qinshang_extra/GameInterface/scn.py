@@ -40,4 +40,3 @@ class ScnResClass():
     def InitData(self, file_path):
         with open(file_path, 'r') as f:
             self.data = json.loads(f.read())
-            f.close()

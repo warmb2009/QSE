@@ -38,7 +38,7 @@ class MdlResClass():
     # mdl内 各部件结构
     class SModelObject():
         '''
-        部件结构
+        大部件结构类
         '''
         def __init__(self):
             self.itype = 0  # 2
@@ -64,13 +64,15 @@ class MdlResClass():
 
             self.PartMng = []
 
-    # 各部件内的小部件结构
     class PartialModalObject():
         '''
-        大部件由小部件组成
+        小部件结构类， 各小部件组成大部件
         如物品的灯光，火焰，或是大物品分割成小部件
         '''
         def __init__(self):
+            '''
+            小部件名称
+            '''
             self.m_szName = ''
             self.m_booIsSpr = 0
             self.m_dPicID = 0
@@ -94,30 +96,27 @@ class MdlResClass():
     # 详细的mdl文件数据的初始化过程
     def InitData(self):
         f = self.read(self.file_name)
-        print(self.file_name)
+
         # 读取mdl文件的头部
         self.file_header = self.FileHeader()
         self.file_header.tag = struct.unpack('16c', f.read(16))[0]
         self.file_header.version = struct.unpack('16c', f.read(16))[0]
         self.file_header.inum = int(struct.unpack('h', f.read(2))[0])
 
-        self.file_header.szname = str(struct.unpack('256c', f.read(256))[0].split(b'\x00')[0], encoding = "gb2312")
+        self.file_header.szname = str(struct.unpack('256c', f.read(256))[0].split(b'\x00')[0], encoding="gb2312")
         self.file_header.reserved = struct.unpack('94c', f.read(94))[0]
         self.file_header.printc()
 
         # 以下开始读取mdl文件里的各个部件数据
         num = self.file_header.inum
-        print(num)
+
         while num:
-            #print(num)
-            # 先读取大部件数据
             bld = self.SModelObject()
-            #print(f)
             bld.itype = struct.unpack('h', f.read(2))
-            
+
             # 大部件名称
-            bld.szName = str(struct.unpack('32s', f.read(32))[0].split(b'\x00')[0], encoding = "gb2312")
-            
+            bld.szName = str(struct.unpack('32s', f.read(32))[0].split(b'\x00')[0], encoding="gb2312")
+
             bld.wManualID = struct.unpack('h', f.read(2))[0]
             bld.wAutoID = struct.unpack('h', f.read(2))[0]  # 部件id
             bld.PartMng_LPSTR = struct.unpack('2h', f.read(4))[0]  # 指针
@@ -181,11 +180,3 @@ class MdlResClass():
     def read(self, _filename):
         f = open(_filename, 'rb')
         return f
-
-
-'''
-if __name__ == '__main__':
-    file_name = '/home/jeroen/work/qinshang/game/mdl/house.Mdl'
-    # file_name = '/home/jeroen/work/qinshang/game/SCENE/Int/zhaocun1.BNT'
-    bnt = MdlBase(file_name)
-'''

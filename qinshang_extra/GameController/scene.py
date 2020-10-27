@@ -97,65 +97,9 @@ class Scene():
         # 维度反了 行、列交换
         np_image_array = np.array(to_image).swapaxes(1, 0)
         im = Image.fromarray(np.array(to_image))
-        #im.save('ut.jpeg')
+        
         map_info['info'] = np_image_array
         return map_info
-
-    def CombineMap(self, columns, rows, combine_list):
-        print('合成大图')
-        # 将地图瓦片整合成一个大图
-        width = rows * 64
-        height = columns * 32
-
-        for i in range(rows):  # line
-            for j in range(columns):  # index
-                #print(combine_array)
-                combine_array = combine_list[i][j]
-                
-                from_image = Image.fromarray(combine_array.astype('uint8')).convert('RGB')
-
-                x = int(columns * 64 / 2 + j * 32 - i * 32 - 32)  # 每加一行左移32
-                y = int(i * 16 + j * 16)
-
-                to_image.paste(from_image, (x, y))
-
-        '''
-        # 初始化大图矩阵
-        #print(width, height)
-        image_array = np.zeros(shape=[width, height, 3],
-                               dtype=int)
-
-        for i in range(rows):  # line
-            for j in range(columns):  # index
-
-                x = int(columns * 64 / 2 + j * 32 - i * 32) # 每加一行左移32
-                y = int(i * 16 + j * 16 + 16)
-
-                # 绘制瓦片
-                self.draw_tile(x, y, combine_list[i][j], image_array, i, j)
-        print('合成完毕')
-        '''
-        return image_array
-
-    def draw_tile(self, x, y, combine, image_array, i, j):
-        # 绘制瓦片到大图
-        if combine is None:
-            return
-        # 坐标从中心位置转为左上角
-        o_x = x - 32 
-        o_y = y - 16
-        
-        for i in range(32):# 行
-            for j in range(64): # 列
-                i_x = o_x + j
-                i_y = o_y + i
-
-                # print(i_x, i_y)
-                ori_arr = image_array[i_x][i_y]
-                new_arr = combine[i][j]
-                # 空白处为新值
-                if not (new_arr == [0, 0, 0]).all():
-                    image_array[i_x][i_y] = new_arr
 
     def LoadBnt(self, file_path):
         #bnt文件读取
@@ -177,12 +121,8 @@ class Scene():
         print(lib_path)
         # 初始化lib类
         print('初始化lib类')
-        
-
         # 初始化资源ID转换类
         rm = ResMng()
-        
-
         num = 0
         for mdl_info in bldResMng.mdl_list:
             print('第%d 个部件' % num)
@@ -190,7 +130,7 @@ class Scene():
             pos_y = mdl_info.gp_map_pos_y
 
             auto_id = mdl_info.iModelAutoID
-            
+
             # 获取部件数据
             mdlres_info = mdl_res.get(auto_id)
             print(mdlres_info.szName)
@@ -202,31 +142,17 @@ class Scene():
                 m_dPicID = bld_item.m_dPicID
                 pos_x = bld_item.m_pos_x
                 pos_y = bld_item.m_pos_y
-                
+
                 # 进行子部件图片加载
                 print(m_dPicID)
                 rt_object = rm.get_image(m_dPicID)
                 print(rt_object.type)
 
-                if rt_object.type == 2: # spr
+                if rt_object.type == 2:  # spr
                     print(rt_object.data.getvalue())
                     return
-                #print(pos_x, pos_y)
-                #print(bld_item.m_booIsSpr)
                 print('end')
-            '''
-            #mdl_res = MdlResClass()
-            #print(pos_x, pos_y)
-            #for part in mdl.PartMng:
-                name = part.m_szName
-                isSpr= part.m_booIsSpr
-                picid = part.m_dPicID
-                posx = part.m_pos_x
-                posy = part.m_pos_y
-                
-                print(name)
-                print(picid)
-            '''
+
             num += 1
 
     def LoadScene(self, file_path):
@@ -238,16 +164,14 @@ class Scene():
         map_name = SrcInfo['map_name']
         bnt_name = SrcInfo['intbld']
         ont_name = SrcInfo['intobj']
-        #print(bnt_name)
-        #return
-        
+
         # 加载map文件
         map_folder = GetMapPath()
         map_path = os.path.join(map_folder, map_name)
 
         # 读取map文件的图块
         #map_array = self.LoadMap(map_path)
-        
+
         # 加载 场景的物品 文件。注意，物件可进行操作，或是遮挡玩家，所以不能直接覆盖到底层地图上
         bnt_folder = GetBntPath()
         bnt_path = os.path.join(bnt_folder, bnt_name)

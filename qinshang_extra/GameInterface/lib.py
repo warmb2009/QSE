@@ -37,8 +37,11 @@ import numpy as np
 反之,就是透明色的个数. 注意一点: 他们都是短整形数,因为,哎,因为图象的点就是16位的.
 '''
 
-# 处理buffer 
+
 class LibResClass():
+    '''
+    资源处理类， 传入缓存数据，解析为可识别的资源数据 包含图片，图片组，帧序列
+    '''
     def __init__(self, _buf):
         self.type = 0
         self.buf = _buf
@@ -59,10 +62,13 @@ class LibResClass():
         else:  # spr
             self.type = 2
             self.item = SprObject(self.buf)
-        
+
 
 # 读取帧动画数据
 class SprObject():
+    '''
+    帧动画对象，从缓存数据中读入
+    '''
     def __init__(self, _buf):
 
         pass
@@ -70,6 +76,9 @@ class SprObject():
 
 # 读取xbm序列帧
 class XBMGroupObject():
+    '''
+    xbm组对象，从缓存数据中读入
+    '''
     def __init__(self, _buf):
         self.type = 0
         self.buf = BytesIO(_buf)
@@ -104,6 +113,9 @@ class XBMGroupObject():
 
 
 class XBMObject():
+    '''
+    xbm对象，从缓存数据中读入
+    '''
     def __init__(self, _buf):
         self.buf = BytesIO(_buf)  # 内存
         self.szName = ''  # 名称
@@ -120,9 +132,15 @@ class XBMObject():
         return
 
     def get_image_array():
+        '''
+        获取图像数组
+        '''
         return self.image_array
-    # xbm 类型图片初始化
+
     def InitData(self):
+        '''
+        xbm 类型图片初始化
+        '''
         self.szName = struct.unpack('16s', self.buf.read(16))
         self.iVer = struct.unpack('4s', self.buf.read(4))
         self.buf.seek(20)
@@ -145,6 +163,9 @@ class XBMObject():
 
     # rgb565图像转为rgb888
     def rgb565torgb888(self, color):
+        '''
+        565格式像素转为888格式
+        '''
         r_mask = 0b1111100000000000
         g_mask = 0b0000011111100000
         b_mask = 0b0000000000011111
@@ -156,6 +177,9 @@ class XBMObject():
         return (r_888, g_888, b_888, 255)
 
     def read_image_line_data(self, buf, current_count, width):
+        '''
+        处理图像的单行像素数据
+        '''
         pixel_array = []
         # buf: xbm图片缓存
         # current_count 初始为0 记录所读取的游标，用于迭代
@@ -192,6 +216,9 @@ class XBMObject():
         return pixel_array
 
     def read_data(self):
+        '''
+        开始处理图像数据
+        '''
         all_array = []
         for i in range(self.height):
             # 获取每行的偏移地址
@@ -205,14 +232,11 @@ class XBMObject():
         rt = np.array(all_array)
         return rt
 
-    '''
-    def save_file(self, filename='out.jpeg'):
-        img = Image.fromarray(self.image_array.astype('uint8')).convert('RGBA')
-        img.save(filename)
-    '''
 
-# 处理lib资源文件
 class QinLib():
+    '''
+    处理lib资源文件    
+    '''
     def __init__(self, _filename):
         self.filename = _filename
         self.filecount = 0
@@ -252,18 +276,23 @@ class QinLib():
                                     dtype=int)
         return empty_buf
 
-    # 根据索引读取文件内容
     def get_buf(self, index):
+        '''
+        获取指定序号的缓存数据
+        '''
         info = self.filelist[index]
         f = self.read(self.filename)
         f.seek(info['pos'])
         data = f.read(info['length'])
-        
+
         f.close()
         return data
 
     # 获取图片的数据后 转为数组
     def get_image(self, index):
+        '''
+        获取对应序号的格式化图片数据
+        '''
         data = self.get_buf(index)
         return LibResClass(data)
 

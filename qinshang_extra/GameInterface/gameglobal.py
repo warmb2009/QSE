@@ -12,11 +12,13 @@ import numpy as np
 
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
+
 def GetResPath():
     '''
     获取Res lib文件目录
     '''
     return os.path.join(PROJECT_ROOT, '../../datas/Res/')
+
 
 def GetResIniPath():
     '''
@@ -24,11 +26,13 @@ def GetResIniPath():
     '''
     return os.path.join(GetResPath(), 'Combination.csv')
 
+
 def GetMdlPath():
     '''
     获取mdl文件目录
     '''
     return os.path.join(PROJECT_ROOT, '../../datas/mdl/')
+
 
 def GetScnPath():
     '''
@@ -36,17 +40,20 @@ def GetScnPath():
     '''
     return os.path.join(PROJECT_ROOT, '../../datas/SCENE/Scn_new/')
 
+
 def GetMapPath():
     '''
     获取map文件目录
     '''
     return os.path.join(PROJECT_ROOT, '../../datas/SCENE/Map')
 
+
 def GetBntPath():
     '''
     获取bnt文件目录
     '''
     return os.path.join(PROJECT_ROOT, '../../datas/SCENE/Bnt')
+
 
 def GetOntPath():
     '''
@@ -55,8 +62,10 @@ def GetOntPath():
     return os.path.join(PROJECT_ROOT, '../../datas/SCENE/Ont')
 
 
-# 合并两个图块 buf_2 覆盖在buf_1 上面
 def combine( buf_1, buf_2):
+    '''
+    合并两个图块 buf_2 覆盖在buf_1 上面    
+    '''
     width = buf_1.shape[0]
     height = buf_1.shape[1]
     ret_array = np.empty(shape=[width, height, 4], dtype=int)
