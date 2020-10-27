@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 '''
 @文件    :scene.py
-@说明    :场景管理
+@说明    :场景文件 处理场景的加载
 @时间    :2020/10/18 12:09:27
 @作者    :jeroen
 @版本    :1.0
@@ -20,7 +20,7 @@ import numpy as np
 import PIL.Image as Image
 from GameInterface.gameglobal import *
 
-class SceneMng():
+class Scene():
     def __init__(self):
         self.mpResMng = None
         pass
@@ -95,7 +95,7 @@ class SceneMng():
         # 维度反了 行、列交换
         np_image_array = np.array(to_image).swapaxes(1, 0)
         im = Image.fromarray(np.array(to_image))
-        im.save('ut.jpeg')
+        #im.save('ut.jpeg')
         map_info['info'] = np_image_array
         return map_info
 

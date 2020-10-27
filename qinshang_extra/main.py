@@ -8,7 +8,7 @@
 @版本    :1.0
 '''
 
-from res import *
+from scenemng import *
 import pygame, sys, time
 from pygame.locals import *
 from PIL import Image
@@ -21,9 +21,9 @@ if __name__ == '__main__':
     start = datetime.datetime.now()
 
     # 初始化资源数据工厂
-    lrs = LibResSingleton()
-    #lrs.LoadScn('zhc_house1.Scn')
-    lrs.LoadScn('zhaocun1.Scn')
+    lrs = LibSceneMngSingleton()
+    lrs.LoadScn('zhc_house1.Scn')
+    #lrs.LoadScn('zhaocun1.Scn')
     map_info = lrs.map_info
     # 获取 某场景的map数据
     cx = map_info['cx']
