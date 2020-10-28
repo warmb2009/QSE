@@ -65,14 +65,58 @@ class LibResClass():
 
 
 # 读取帧动画数据
-class SprObject():
+class SprGroupObject():
     '''
     帧动画对象，从缓存数据中读入
     '''
     def __init__(self, _buf):
+        _buf = BytesIO(_buf)
+        self.spr_num = 0  # 动画数量
+        self.frame_num = 0  # 帧数
+        self.average_speed = 0  # 动画速度
+        self.frame_script_size = 0
 
-        pass
+        self.spr_list = []  # 帧列表
+        
+        self.init_data(_buf)
 
+    def init_data(_buf):
+        self.spri_num = struct.unpack('i', _buf.read(4))[0]
+        self.frame_num = struct.unpack('i', _buf.read(4))[0]
+        self.average_speed = struct.unpack('i', _buf.read(4))[0]
+        self.frame_script_size = struct.unpack('i', _buf.read(4))[0]
+
+        num = self.frame_num
+        while num:
+            spr = SprObject(_buf.read(28))
+            self.spr_list.append(spr)
+            num -= 1
+
+class SprObject():
+    '''
+    帧动画单独一帧的对象
+    '''
+    def __init__(self, _buf):
+        _buf = BytesIO(_buf)
+        self.frame_type = 0  # 帧类型
+        self.frame_speed = 0  # 帧速度
+        self.res_id = 0  # 帧图片的资源id
+        self.x_offset = 0
+        self.y_offset = 0
+        self.x_center = 0
+        self.y_center = 0
+
+        self.init_data(_buf)
+
+    def init_data(_buf):
+        self.frame_type = struct.unpack('i', _buf.read(4))[0]
+        self.frame_speed = struct.unpack('i', _buf.read(4))[0]
+        self.res_id = struct.unpack('i', _buf.read(4))[0]
+        self.x_offset = struct.unpack('i', _buf.read(4))[0]
+        self.y_offset = struct.unpack('i', _buf.read(4))[0]
+        self.x_center = struct.unpack('i', _buf.read(4))[0]
+        self.y_center = struct.unpack('i', _buf.read(4))[0]
+        
 
 # 读取xbm序列帧
 class XBMGroupObject():
@@ -80,34 +124,35 @@ class XBMGroupObject():
     xbm组对象，从缓存数据中读入
     '''
     def __init__(self, _buf):
+        _buf = BytesIO(_buf)
         self.type = 0
-        self.buf = BytesIO(_buf)
+        # self.buf = BytesIO(_buf)
         self.szName = ''
         self.iNum = 0
         self.size = 0
         self.qx_list = []
 
-        self.InitData()
+        self.InitData(_buf)
 
-    def InitData(self):
+    def InitData(self, _buf):
         # 标识
-        self.szName = struct.unpack('16s', self.buf.read(16))[0]
+        self.szName = struct.unpack('16s', _buf.read(16))[0]
         # 子图片数量
-        self.iNum = struct.unpack('i', self.buf.read(4))[0]
-        self.size = struct.unpack('i', self.buf.read(4))[0]
+        self.iNum = struct.unpack('i', _buf.read(4))[0]
+        self.size = struct.unpack('i', _buf.read(4))[0]
 
         pos_list = []
         # 读取偏移地址（相对于文件头）
         num = self.iNum
         while num:
-            pos = struct.unpack('i', self.buf.read(4))[0]
+            pos = struct.unpack('i', _buf.read(4))[0]
             pos_list.append(pos)
             num -= 1
 
         # 读取xbm 加入列表
         for pos in pos_list:
-            self.buf.seek(pos)
-            data = self.buf.read(self.size)
+            _buf.seek(pos)
+            data = _buf.read(self.size)
             qx = XBMObject(data)
             self.qx_list.append(qx)
 
@@ -117,7 +162,7 @@ class XBMObject():
     xbm对象，从缓存数据中读入
     '''
     def __init__(self, _buf):
-        self.buf = BytesIO(_buf)  # 内存
+        _buf = BytesIO(_buf)  # 内存
         self.szName = ''  # 名称
         self.iVer = 0
         self.width = 0  # 图片宽度
@@ -126,10 +171,8 @@ class XBMObject():
         self.index = 0
 
         #self.image_array = None  # 像素点阵
-        self.InitData()
-        self.image_array = self.read_data()
-
-        return
+        self.InitData(_buf)
+        self.image_array = self.read_data(_buf)
 
     def get_image_array():
         '''
@@ -137,27 +180,27 @@ class XBMObject():
         '''
         return self.image_array
 
-    def InitData(self):
+    def InitData(self, _buf):
         '''
         xbm 类型图片初始化
         '''
-        self.szName = struct.unpack('16s', self.buf.read(16))
-        self.iVer = struct.unpack('4s', self.buf.read(4))
-        self.buf.seek(20)
+        self.szName = struct.unpack('16s', _buf.read(16))
+        self.iVer = struct.unpack('4s', _buf.read(4))
+        _buf.seek(20)
 
         # 读取图片宽度 高度
-        self.width = struct.unpack('i', self.buf.read(4))[0]
-        self.height = struct.unpack('i', self.buf.read(4))[0]
+        self.width = struct.unpack('i', _buf.read(4))[0]
+        self.height = struct.unpack('i', _buf.read(4))[0]
 
         # 初始化图片数据的矩阵
         self.image_array = np.empty(shape=[self.width, self.height, 4],
                                     dtype=int)
         # 定位到数据段
-        self.buf.seek(64)
+        _buf.seek(64)
 
         # 读取每行的偏移地址
         for i in range(self.height):
-            pos = struct.unpack('i', self.buf.read(4))[0] + 64
+            pos = struct.unpack('i', _buf.read(4))[0] + 64
             # 处理单行数据
             self.position_list.append(pos)
 
@@ -176,7 +219,7 @@ class XBMObject():
 
         return (r_888, g_888, b_888, 255)
 
-    def read_image_line_data(self, buf, current_count, width):
+    def read_image_line_data(self, _buf, current_count, width):
         '''
         处理图像的单行像素数据
         '''
@@ -187,7 +230,7 @@ class XBMObject():
         # pixel_array 要存入数据的数组
 
         # 读取透明色的个数
-        zero_count = int(struct.unpack('h', buf.read(2))[0]/2)
+        zero_count = int(struct.unpack('h', _buf.read(2))[0]/2)
 
         for i in range(zero_count):
             pixel_array.append((0, 0, 0, 0))
@@ -195,9 +238,9 @@ class XBMObject():
             current_count += 1
         if (current_count < width):
             # 继续读取非透明颜色
-            no_zero_count = int(struct.unpack('h', buf.read(2))[0]/2)
+            no_zero_count = int(struct.unpack('h', _buf.read(2))[0]/2)
             for i in range(no_zero_count):
-                res = buf.read(2)
+                res = _buf.read(2)
                 data = struct.unpack('h', res)[0]
                 # 565颜色转为888
                 color = self.rgb565torgb888(data)
@@ -208,14 +251,14 @@ class XBMObject():
 
         if (current_count < width):
             # 继续读取后面的颜色
-            r_array = self.read_image_line_data(buf,
+            r_array = self.read_image_line_data(_buf,
                                                 current_count,
                                                 width)
             pixel_array.extend(r_array)  # 合并迭代数组
 
         return pixel_array
 
-    def read_data(self):
+    def read_data(self, _buf):
         '''
         开始处理图像数据
         '''
@@ -224,9 +267,9 @@ class XBMObject():
             # 获取每行的偏移地址
             pos = self.position_list[i]
             # 定位到偏移地址
-            self.buf.seek(pos)
+            _buf.seek(pos)
 
-            pixel_array = self.read_image_line_data(self.buf, 0, self.width)
+            pixel_array = self.read_image_line_data(_buf, 0, self.width)
             all_array.append(pixel_array)
         # 转为np数组
         rt = np.array(all_array)
